@@ -15,7 +15,7 @@ using var conn = factory.CreateConnection(); //Bağlantı oluşturduk
 
 var channel = conn.CreateModel(); // Kanal oluşturduk.
 
-channel.QueueDeclare("hello-rabbitmq", true, false, false); // kuyruk resde silinmez,başka kanallardan erişilir,otomatik silinmesin dinleyen olmazsa.
+channel.ExchangeDeclare("logs-fanout", durable: true, type: ExchangeType.Fanout); // ismi ,res atınca kaybolmaz ,
 
 Enumerable.Range(1, 50).ToList().ForEach(
     x =>
@@ -24,7 +24,7 @@ Enumerable.Range(1, 50).ToList().ForEach(
 
         var msgBody = Encoding.UTF8.GetBytes(msg);
 
-        channel.BasicPublish(string.Empty, "hello-rabbitmq", null, msgBody);
+        channel.BasicPublish("logs-fanout", "", null, msgBody); // exchange adı verilir.s
 
         Console.WriteLine($"Mesaj İletildi.:{msg}");
 
