@@ -15,9 +15,6 @@ using var conn = factory.CreateConnection(); //Bağlantı oluşturduk
 
 var channel = conn.CreateModel(); // Kanal oluşturduk.
 
-var randomQueueName = channel.QueueDeclare().QueueName;
-
-channel.QueueBind(randomQueueName, "logs-fanout", "", null); // bir kuyruk bağladık,exchange adı verildi,eğer alcıı proje durursa kuyrukta kaybolur.
 
 channel.BasicQos(0, 1, false); //her alıcıya 1 mesaj atar 
 
@@ -26,7 +23,9 @@ channel.BasicQos(0, 1, false); //her alıcıya 1 mesaj atar
 
 var consumer = new EventingBasicConsumer(channel);
 
-var a = channel.BasicConsume(randomQueueName, false, consumer); //mesajı verince siler
+var queueName = "direct-queue critical";
+
+var a = channel.BasicConsume(queueName, false, consumer); //mesajı verince siler
 
 Console.WriteLine("Kanal dinleniyor!");
 
@@ -37,6 +36,8 @@ consumer.Received += (object? sender, BasicDeliverEventArgs e) =>
     Thread.Sleep(1000);
 
     Console.WriteLine("kuyruktran gelen mesaj : " + msg);
+
+    File.AppendAllTextAsync("log-critical.txt", msg + "\n");
 
     channel.BasicAck(e.DeliveryTag, false); // gönderiiciye mesajı aldım der , 1 taneyi siler.
 };

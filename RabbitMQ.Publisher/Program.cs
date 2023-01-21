@@ -2,6 +2,8 @@
 using RabbitMQ.Client;
 using System.Text;
 
+
+
 Console.WriteLine("Hello, World!");
 
 var factory = new ConnectionFactory
@@ -15,21 +17,38 @@ using var conn = factory.CreateConnection(); //Bağlantı oluşturduk
 
 var channel = conn.CreateModel(); // Kanal oluşturduk.
 
-channel.ExchangeDeclare("logs-fanout", durable: true, type: ExchangeType.Fanout); // ismi ,res atınca kaybolmaz ,
+channel.ExchangeDeclare("logs-direct", durable: true, type: ExchangeType.Direct); // ismi ,res atınca kaybolmaz ,
 
-Enumerable.Range(1, 50).ToList().ForEach(
+Enum.GetNames(typeof(LogNames)).ToList().ForEach(
     x =>
     {
-        string msg = $"Mesaj {x}";
+        var routeKey = $"route-{x}";
 
-        var msgBody = Encoding.UTF8.GetBytes(msg);
+        var queueName = $"direct-queue {x}";
 
-        channel.BasicPublish("logs-fanout", "", null, msgBody); // exchange adı verilir.s
+        channel.QueueDeclare(queueName, true, false, false);
 
-        Console.WriteLine($"Mesaj İletildi.:{msg}");
+        channel.QueueBind(queueName, "logs-direct", routeKey, null);
+
+
 
     }
     );
 
+Enumerable.Range(1, 50).ToList().ForEach(x =>
+{
+    LogNames log = (LogNames)new Random().Next(1, 4);
+
+    string msg = $"Mesaj: Log {log}";
+
+    var msgBody = Encoding.UTF8.GetBytes(msg);
+
+    var routeKey = $"route-{log}";
+
+    channel.BasicPublish("logs-direct", routeKey, null, msgBody); // exchange adı verilir.s
+
+    Console.WriteLine($"Mesaj İletildi.:{msg}");
+
+});
 
 Console.ReadLine();
