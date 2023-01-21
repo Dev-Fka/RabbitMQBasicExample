@@ -23,7 +23,11 @@ channel.BasicQos(0, 1, false); //her alıcıya 1 mesaj atar
 
 var consumer = new EventingBasicConsumer(channel);
 
-var queueName = "direct-queue critical";
+var queueName = channel.QueueDeclare().QueueName;
+
+var routeKey = "info.#"; // info ile başlayan kuyruk mesajları alınır
+
+channel.QueueBind(queueName, "logs-topic", routeKey);
 
 var a = channel.BasicConsume(queueName, false, consumer); //mesajı verince siler
 

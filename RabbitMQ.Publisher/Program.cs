@@ -17,35 +17,25 @@ using var conn = factory.CreateConnection(); //Bağlantı oluşturduk
 
 var channel = conn.CreateModel(); // Kanal oluşturduk.
 
-channel.ExchangeDeclare("logs-direct", durable: true, type: ExchangeType.Direct); // ismi ,res atınca kaybolmaz ,
+channel.ExchangeDeclare("logs-topic", durable: true, type: ExchangeType.Topic); // ismi ,res atınca kaybolmaz ,
 
-Enum.GetNames(typeof(LogNames)).ToList().ForEach(
-    x =>
-    {
-        var routeKey = $"route-{x}";
-
-        var queueName = $"direct-queue {x}";
-
-        channel.QueueDeclare(queueName, true, false, false);
-
-        channel.QueueBind(queueName, "logs-direct", routeKey, null);
-
-
-
-    }
-    );
 
 Enumerable.Range(1, 50).ToList().ForEach(x =>
 {
-    LogNames log = (LogNames)new Random().Next(1, 4);
 
-    string msg = $"Mesaj: Log {log}";
+    var random = new Random();
+
+    LogNames log1 = (LogNames)random.Next(1, 4);
+    LogNames log2 = (LogNames)random.Next(1, 4);
+    LogNames log3 = (LogNames)random.Next(1, 4);
+
+    string msg = $"Mesaj: Log {log1} - {log2} -{log3}";
 
     var msgBody = Encoding.UTF8.GetBytes(msg);
 
-    var routeKey = $"route-{log}";
+    var routeKey = $"{log1}.{log2}.{log3}";
 
-    channel.BasicPublish("logs-direct", routeKey, null, msgBody); // exchange adı verilir.s
+    channel.BasicPublish("logs-topic", routeKey, null, msgBody); // exchange adı verilir.s
 
     Console.WriteLine($"Mesaj İletildi.:{msg}");
 
