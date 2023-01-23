@@ -25,6 +25,7 @@ Dictionary<string, object> headers = new()
 
 var properties = channel.CreateBasicProperties();
 properties.Headers = headers;
+properties.Persistent = true; // bu alanı set edersek mesajlar kalıcı olur.Res olsa dahi mesajları durur.
 
 channel.BasicPublish("headerExchange", string.Empty, properties, Encoding.UTF8.GetBytes("Mesajım"));
 
