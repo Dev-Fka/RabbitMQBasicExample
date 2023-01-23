@@ -25,9 +25,14 @@ var consumer = new EventingBasicConsumer(channel);
 
 var queueName = channel.QueueDeclare().QueueName;
 
-var routeKey = "info.#"; // info ile başlayan kuyruk mesajları alınır
+Dictionary<string, object> headers = new()
+{
+    { "format", "pdf" },
+    { "shape", "a4" },
+    {"x-match","all" }
+};
 
-channel.QueueBind(queueName, "logs-topic", routeKey);
+channel.QueueBind(queueName, "headerExchange", string.Empty, headers);
 
 var a = channel.BasicConsume(queueName, false, consumer); //mesajı verince siler
 
@@ -40,8 +45,6 @@ consumer.Received += (object? sender, BasicDeliverEventArgs e) =>
     Thread.Sleep(1000);
 
     Console.WriteLine("kuyruktran gelen mesaj : " + msg);
-
-    File.AppendAllTextAsync("log-critical.txt", msg + "\n");
 
     channel.BasicAck(e.DeliveryTag, false); // gönderiiciye mesajı aldım der , 1 taneyi siler.
 };
